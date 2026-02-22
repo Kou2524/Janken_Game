@@ -3,19 +3,24 @@ sys.path.insert(0, ".")
 
 import pyxel
 
-# ==============================
-# JS 側の set_bgm_scene を呼べるようにする
-# ==============================
+# ===== JS 側の set_bgm_scene を呼べるようにする =====
 try:
     from js import set_bgm_scene as _set_bgm_scene_js
-
     def set_bgm_scene(scene: int) -> None:
         _set_bgm_scene_js(scene)
-
 except ImportError:
-    # ローカル実行用のダミー
     def set_bgm_scene(scene: int) -> None:
         pass
+
+# ===== 同じBGM指示を連打しないためのガード =====
+_current_bgm_scene = -1
+
+def request_bgm(scene: int) -> None:
+    """scene: 0=bgm1, 1=bgm2"""
+    global _current_bgm_scene
+    if _current_bgm_scene != scene:
+        _current_bgm_scene = scene
+        set_bgm_scene(scene)
 
 
 # ==============================
@@ -255,15 +260,14 @@ def update():
     global after_draw
     global jkp_aiko
 
-    # シーンが変わった瞬間だけ BGM 切り替え
+
     if scene != last_scene:
-        if scene == SCENE_TITLE:
-            set_bgm_scene(0)
-        elif scene == SCENE_GAME:
-            set_bgm_scene(1)
-        elif scene == SCENE_HOWTO:
-            set_bgm_scene(2)
-        last_scene = scene
+    if scene in (SCENE_TITLE, SCENE_HOWTO):
+        set_bgm_scene(0)   # bgm1
+    elif scene == SCENE_GAME:
+        set_bgm_scene(1)   # bgm2
+
+    last_scene = scene
 
     # HOW TO 画面でのシークレットコマンド入力
     if scene == SCENE_HOWTO:
