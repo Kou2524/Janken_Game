@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Janken Game</title>
+
+  <!-- Pyxel本体はCDNから読み込む（軽量！） -->
+  <script src="https://cdn.jsdelivr.net/pyxel/wasm/pyxel.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+<script>
+  launchPyxel({
+    command: "play main.py",
+    name: "Janken Game",
+    baseUrl: "./"
+  });
+</script>
+</body>
+</html>
