@@ -4,23 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Janken Game</title>
-  <style>
-    body { margin:0; background:#000; }
-    #pyxel-screen { width: 100vw; height: 100vh; }
-  </style>
 </head>
 <body>
-  <div id="pyxel-screen"></div>
-
-  <!-- Pyxel Web 本体 -->
-  <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
-
-  <!-- ここで main.py を実行 + Pillow をロード -->
-  <pyxel-run
-    root="."
-    name="main.py"
-    packages="Pillow"
-    gamepad="enabled"
-  ></pyxel-run>
+  <script>
+    // .pyxapp を起動（拡張子なし）
+    location.replace("https://kitao.github.io/pyxel/wasm/launcher/?play=Kou2524.Janken_Game.JankenGame");
+  </script>
 </body>
 </html>
