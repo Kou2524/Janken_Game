@@ -1,115 +1,140 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <title>Janken Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+  <meta charset="utf-8" />
+  <title>Janken Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Pyxel WASM -->
-    <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+  <!-- Pyxel WASM -->
+  <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
 
-    <style>
-      html, body {
-        margin: 0;
-        height: 100%;
-        background: #000;
-        overflow: hidden;
-      }
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
 
-      #wrap {
-        position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        background: #000;
-      }
+    #wrap {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #000;
+    }
 
-      pyxel-play, canvas {
-        image-rendering: pixelated;
-      }
+    pyxel-play, canvas {
+      image-rendering: pixelated;
+    }
 
-      /* Pyxel の下に勝手に出る "Tap / Enter to Start" を隠す */
-      pyxel-play::after {
-        display: none !important;
-      }
-    </style>
-  </head>
+    /* Pyxel の下に勝手に出る "Tap / Enter to Start" を隠す */
+    pyxel-play::after {
+      display: none !important;
+    }
 
-  <body>
-    <div id="wrap">
+    /* 音ONボタン（iOS用の確実解禁スイッチ） */
+    #sound-btn {
+      position: fixed;
+      left: 12px;
+      top: 12px;
+      z-index: 99999;
+      padding: 10px 14px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid #555;
+      background: #111;
+      color: #fff;
+    }
+  </style>
+</head>
 
-      <!-- ★ここがポイント：pyxapp起動 + Pillow/numpy をロード -->
-      <pyxel-play
-        root="."
-        name="JankenGame.pyxapp"
-        gamepad="enabled"
-        touchpad="enabled"
-        packages="Pillow,numpy"
-      ></pyxel-play>
+<body>
+  <!-- ✅ iOSで確実に音を解禁するボタン -->
+  <button id="sound-btn">🔊 Sound ON</button>
 
-    </div>
+  <div id="wrap">
+    <!-- ✅ pyxapp起動（PUFで必要なパッケージも一緒にロード） -->
+    <pyxel-play
+      root="."
+      name="JankenGame.pyxapp"
+      gamepad="enabled"
+      touchpad="enabled"
+      packages="Pillow,numpy"
+    ></pyxel-play>
+  </div>
 
-    <script>
-      /* ====== BGM 切り替え（iOS/Safari対策入り） ====== */
+  <script>
+    /* ====== BGM 切り替え（iOS/Safari対策：ボタンで確実解禁） ====== */
 
-      // iOS対策：最初のユーザー操作が来るまで audio.play() しない
-      let audioUnlocked = false;   // 1回でもユーザー操作があったか
-      let pendingScene = 0;        // 解禁前に要求されたsceneを記憶
+    // ルート直下に bgm1.mp3 / bgm2.mp3 がある前提
+    const bgm1 = new Audio("./bgm1.mp3");
+    const bgm2 = new Audio("./bgm2.mp3");
 
-      // HTMLAudioElement（ルート直下のmp3を読む）
-      const bgm1 = new Audio("./bgm1.mp3");
-      const bgm2 = new Audio("./bgm2.mp3");
+    bgm1.loop = true;
+    bgm2.loop = true;
 
-      bgm1.loop = true;
-      bgm2.loop = true;
+    bgm1.volume = 0.25;
+    bgm2.volume = 0.25;
 
-      bgm1.volume = 0.25;
-      bgm2.volume = 0.25;
+    bgm1.preload = "auto";
+    bgm2.preload = "auto";
 
-      function stopAllBGM() {
-        for (const bgm of [bgm1, bgm2]) {
-          try {
-            bgm.pause();
-            bgm.currentTime = 0;
-          } catch (e) {}
-        }
-      }
+    let audioUnlocked = false;   // 音が解禁されたか
+    let pendingScene = 0;        // 解禁前に要求されたsceneを保存
 
-      function playScene(scene) {
-        stopAllBGM();
+    function stopAllBGM() {
+      [bgm1, bgm2].forEach(bgm => {
+        try {
+          bgm.pause();
+          bgm.currentTime = 0;
+        } catch (e) {}
+      });
+    }
 
-        let target = null;
-        if (scene === 0) target = bgm1;     // タイトル
-        else if (scene === 1) target = bgm2; // バトル中
-        else if (scene === 2) target = bgm1; // リザルトとか
+    function playScene(scene) {
+      stopAllBGM();
 
-        if (!target) return;
+      let target = null;
+      if (scene === 0) target = bgm1;      // タイトル
+      else if (scene === 1) target = bgm2; // ゲーム中
+      else if (scene === 2) target = bgm1; // リザルト等
 
-        // iOSは play() が Promise reject することがあるので握りつぶす
-        target.play().catch(() => {});
-      }
+      if (!target) return;
 
-      // Pyxel(Python) 側から呼ばれる関数（今まで通り）
-      window.set_bgm_scene = function (scene) {
-        pendingScene = scene;
+      // iOSはplay()がPromise rejectすることがあるので握りつぶす
+      target.play().catch(() => {});
+    }
 
-        // まだ解禁されてないなら「覚えるだけ」
-        if (!audioUnlocked) return;
+    // Pyxel(Python) 側から呼ばれる
+    window.set_bgm_scene = function(scene) {
+      pendingScene = scene;
 
-        playScene(scene);
-      };
+      // 解禁前は覚えるだけ
+      if (!audioUnlocked) return;
 
-      // ユーザー操作が来た瞬間に音を解禁して、保留中のBGMを流す
-      function unlockAudioOnce() {
-        if (audioUnlocked) return;
-        audioUnlocked = true;
-        playScene(pendingScene);
-      }
+      playScene(scene);
+    };
 
-      // iPhone対策：touchstart/pointerdown両方
-      window.addEventListener("pointerdown", unlockAudioOnce, { once: true });
-      window.addEventListener("touchstart", unlockAudioOnce, { once: true });
-      window.addEventListener("keydown", unlockAudioOnce, { once: true });
-    </script>
-  </body>
+    // ✅ 確実に音を解禁する（iOSはこれが最強）
+    document.getElementById("sound-btn").addEventListener("click", async () => {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+
+      // 「解禁の儀式」：一回だけ実playしてすぐ止めると安定
+      try {
+        await bgm1.play();
+        bgm1.pause();
+        bgm1.currentTime = 0;
+      } catch (e) {}
+
+      // 保留中のシーンを再生
+      playScene(pendingScene);
+
+      const btn = document.getElementById("sound-btn");
+      btn.textContent = "✅ Sound Enabled";
+      btn.style.opacity = "0.7";
+    }, { once: true });
+  </script>
+</body>
 </html>
