@@ -3,14 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="./pyxel.css">
   <title>Janken Game</title>
 </head>
 <body>
   <script type="module">
-    import pyxel from "https://cdn.jsdelivr.net/gh/kitao/pyxel/pyxel.js";
+    import pyxel from "./pyxel.js";
 
-    // ここが超重要：main.py の名前を完全一致で書く
-    await pyxel.run("main.py");
+    await pyxel.run({
+      script: "main.py",
+      packages: [
+        "./pyxel-2.6.8-cp38-abi3-emscripten_4_0_9_wasm32.whl"
+      ]
+    });
   </script>
 </body>
 </html>
