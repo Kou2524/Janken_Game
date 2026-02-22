@@ -687,7 +687,7 @@ def draw():
         draw_centered_jp(0, SCREEN_W, 20, "あそびかた", title_col)
         jp_text(10, 50, "・選択：矢印キー / 十字キー", 7)
         jp_text(10, 60, "・決定：Enter / ボタン", 7)
-        jp_text(10, 80, "Enter / ボタンでタイトルへ", 13)
+        jp_text(10, 80, "enter / ボタンでタイトルへ", 13)
 
 
 pyxel.run(update, draw)
