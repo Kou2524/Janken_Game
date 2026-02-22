@@ -3,19 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="./pyxel.css">
   <title>Janken Game</title>
 </head>
 <body>
-  <script type="module">
-    import pyxel from "./pyxel.js";
-
-    await pyxel.run({
-      script: "main.py",
-      packages: [
-        "./pyxel-2.6.8-cp38-abi3-emscripten_4_0_9_wasm32.whl"
-      ]
-    });
+  <script>
+    // main.py を起動（拡張子なし）
+    location.replace("https://kitao.github.io/pyxel/wasm/launcher/?run=Kou2524.Janken_Game.main");
   </script>
 </body>
 </html>
