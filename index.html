@@ -4,23 +4,70 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Janken Game</title>
+
   <style>
-    body { margin:0; background:#000; }
-    #pyxel-screen { width: 100vw; height: 100vh; }
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #start-btn {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      font-size: 24px;
+      background: #000;
+      color: #fff;
+      border: none;
+      z-index: 9999;
+    }
   </style>
 </head>
+
 <body>
-  <div id="pyxel-screen"></div>
+
+  <!-- iOS音ロック解除用ボタン -->
+  <button id="start-btn">TAP TO START</button>
 
   <!-- Pyxel Web 本体 -->
   <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
 
-  <!-- ルートにある JankenGame.pyxapp を直接起動 -->
+  <!-- ゲーム起動 -->
   <pyxel-play
-  root="."
-  name="JankenGame.pyxapp"
-  gamepad="enabled"
-  packages="Pillow,numpy"
-></pyxel-play>
+    root="."
+    name="JankenGame.pyxapp"
+    gamepad="enabled"
+    packages="Pillow,numpy"
+  ></pyxel-play>
+
+  <script>
+    // iOS対策：ユーザー操作でAudioContextを解放
+    function unlockAudio() {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          gain.gain.value = 0.0001;
+          osc.connect(gain).connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.01);
+        }
+      } catch (e) {
+        console.log("Audio unlock failed:", e);
+      }
+    }
+
+    const btn = document.getElementById("start-btn");
+
+    btn.addEventListener("click", () => {
+      unlockAudio();
+      btn.style.display = "none";
+    }, { once: true });
+  </script>
+
 </body>
 </html>
