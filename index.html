@@ -114,11 +114,7 @@
       playScene(scene);
     };
 
-    // ✅ 確実に音を解禁する（iOSはこれが最強）
-    document.getElementById("sound-btn").addEventListener("click", async () => {
-      if (audioUnlocked) return;
-      audioUnlocked = true;
-
+    
       // 「解禁の儀式」：一回だけ実playしてすぐ止めると安定
       try {
         await bgm1.play();
