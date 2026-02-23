@@ -114,21 +114,7 @@
       playScene(scene);
     };
 
-    
-      // 「解禁の儀式」：一回だけ実playしてすぐ止めると安定
-      try {
-        await bgm1.play();
-        bgm1.pause();
-        bgm1.currentTime = 0;
-      } catch (e) {}
-
-      // 保留中のシーンを再生
-      playScene(pendingScene);
-
-      const btn = document.getElementById("sound-btn");
-      btn.textContent = "✅ Sound Enabled";
-      btn.style.opacity = "0.7";
-    }, { once: true });
+  
   </script>
 </body>
 </html>
